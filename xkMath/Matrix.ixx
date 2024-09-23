@@ -523,6 +523,54 @@ namespace xk::Math
 		return lh;
 	}
 
+	export Matrix<float, 4, 4> OrthographicProjectionLH(Vector<float, 2> resolution, float zNear, float zFar)
+	{
+		return
+		{
+			2 / resolution.X(), 0,      0,                              0,
+			0,      2 / resolution.Y(), 0,                              0,
+			0,      0,     1 / (zFar - zNear),          -zNear / (zFar - zNear),
+			0,      0,      0 , 1
+		};
+	}
+
+	export Matrix<float, 4, 4> OrthographicProjectionAspectRatioLH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
+	{
+		float x = aspectRatio.X() * viewSize / aspectRatio.Y();
+		float y = viewSize;
+		return
+		{
+			2 / x, 0,      0,                              0,
+			0,      2 / y, 0,                              0,
+			0,      0,     1 / (zFar - zNear),          -zNear / (zFar - zNear),
+			0,      0,      0 , 1
+		};
+	}
+
+	export Matrix<float, 4, 4> OrthographicProjectionRH(Vector<float, 2> resolution, float zNear, float zFar)
+	{
+		return
+		{
+			2 / resolution.X(), 0,      0,                              0,
+			0,      2 / resolution.Y(), 0,                              0,
+			0,      0,     1 / (zNear - zFar),          zNear / (zNear - zFar),
+			0,      0,      0 , 1
+		};
+	}
+
+	export Matrix<float, 4, 4> OrthographicProjectionAspectRatioRH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
+	{
+		float x = aspectRatio.X() * viewSize / aspectRatio.Y();
+		float y = viewSize;
+		return
+		{
+			2 / x, 0,      0,                              0,
+			0,      2 / y, 0,                              0,
+			0,      0,     1 / (zNear - zFar),          zNear / (zNear - zFar),
+			0,      0,      0 , 1
+		};
+	}
+
 	export namespace Aliases
 	{
 		using Vector2 = Vector<float, 2>;

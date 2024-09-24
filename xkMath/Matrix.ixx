@@ -509,6 +509,18 @@ namespace xk::Math
 		};
 	}
 
+	export template<class Ty>
+	constexpr Matrix<Ty, 4, 4> ScaleMatrix(const Vector<Ty, 3>& vector)
+	{
+		return
+		{
+			vector.X(), 0, 0, 0,
+			0, vector.Y(), 0, 0,
+			0, 0, vector.Z(), 0,
+			0, 0, 0, 1
+		};
+	}
+
 	export template<class Ty, class Ty2, std::size_t ElementCount>
 	Vector<Ty, ElementCount> HadamardProduct(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
 	{

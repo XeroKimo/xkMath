@@ -135,12 +135,15 @@ namespace xk::Math
 		}
 
 		template<std::convertible_to<Ty> OtherTy, size_t M2, std::convertible_to<Ty>... OtherTy2>
-			requires (sizeof...(OtherTy2) + M2 <= sizeof(M)) && (is_vector)
+			requires (sizeof...(OtherTy2) + M2 <= M) && (is_vector)
 		constexpr Matrix(Matrix<OtherTy, M2, N> v, OtherTy2... values)
 		{
-			std::array<value, sizeof...(OtherTy2)> vs{ values... };
 			std::copy(v._values.begin(), v._values.end(), _values.begin());
-			std::copy(vs.begin(), vs.end(), _values.begin() + M2);
+			if constexpr(sizeof...(OtherTy2) > 0)
+			{
+				std::array<value, sizeof...(OtherTy2)> vs{ values... };
+				std::copy(vs.begin(), vs.end(), _values.begin() + M2);
+			}
 		}
 
 		template<std::convertible_to<Ty>... Ty2>

@@ -117,6 +117,7 @@ namespace xk::Math
 		static constexpr size_t column_count = N;
 		static constexpr size_t element_count = row_count * column_count;
 		static constexpr bool is_square_matrix = row_count == column_count;
+		static constexpr bool is_vector = N == 1;
 		using value = Ty;
 		using reference = Ty&;
 		using const_reference = const Ty&;
@@ -133,6 +134,15 @@ namespace xk::Math
 			std::copy(other._values.begin(), other._values.end(), _values.begin());
 		}
 
+		template<std::convertible_to<Ty> OtherTy, size_t M2, std::convertible_to<Ty>... OtherTy2>
+			requires (sizeof...(OtherTy2) + M2 <= sizeof(M)) && (is_vector)
+		constexpr Matrix(Matrix<OtherTy, M2, N> v, OtherTy2... values)
+		{
+			std::array<value, sizeof...(OtherTy2)> vs{ values... };
+			std::copy(v._values.begin(), v._values.end(), _values.begin());
+			std::copy(vs.begin(), vs.end(), _values.begin() + M2);
+		}
+
 		template<std::convertible_to<Ty>... Ty2>
 			requires (sizeof...(Ty2) <= M * N) //Some stupid reason consumers of the library can't see element_count when trying to instantiate this constructor
 		constexpr Matrix(Ty2... values) :
@@ -145,7 +155,7 @@ namespace xk::Math
 				{
 					for(size_t j = 0; j < column_count; j++)
 					{
-						_values[ColumnMajorIndex(i, j)] = copy[RowMajorIndex(i, j)];
+						_values[GetIndex(i, j)] = copy[NativeMemoryIndex(i, j)];
 					}
 				}
 			}
@@ -289,19 +299,32 @@ namespace xk::Math
 		constexpr reference operator[](size_t index) requires (N == 1) { return _values[index]; }
 		constexpr const_reference operator[](size_t index) const requires (N == 1) { return _values[index]; }
 
-		constexpr reference X() requires (M >= 1 && N == 1) { return _values[0]; }
-		constexpr const_reference X() const requires (M >= 1 && N == 1) { return _values[0]; }
+		constexpr reference X() requires (element_count >= 1) && (is_vector) { return _values[0]; }
+		constexpr const_reference X() const requires (element_count >= 1) && (is_vector) { return _values[0]; }
 
-		constexpr reference Y() requires (M >= 2 && N == 1) { return _values[1]; }
-		constexpr const_reference Y() const requires (M >= 2 && N == 1) { return _values[1]; }
+		constexpr reference Y() requires (element_count >= 2) && (is_vector) { return _values[1]; }
+		constexpr const_reference Y() const requires (element_count >= 2) && (is_vector) { return _values[1]; }
 
-		constexpr reference Z() requires (M >= 3 && N == 1) { return _values[2]; }
-		constexpr const_reference Z() const requires (M >= 3 && N == 1) { return _values[2]; }
+		constexpr reference Z() requires (element_count >= 3) && (is_vector) { return _values[2]; }
+		constexpr const_reference Z() const requires (element_count >= 3) && (is_vector) { return _values[2]; }
 
-		constexpr reference W() requires (M >= 4 && N == 1) { return _values[3]; }
-		constexpr const_reference W() const requires (M >= 4 && N == 1) { return _values[3]; }
+		constexpr reference W() requires (element_count >= 4) && (is_vector) { return _values[3]; }
+		constexpr const_reference W() const requires (element_count >= 4) && (is_vector) { return _values[3]; }
+
+		template<size_t... Index>
+			requires ((Index < element_count) && ...) && (sizeof...(Index) < element_count) && (is_vector)
+		constexpr Matrix<Ty, sizeof...(Index), 1> Swizzle()
+		{
+			return { _values[Index]... };
+		}
 
 	private:
+		constexpr size_t NativeMemoryIndex(size_t row, size_t column) const noexcept
+		{
+			return (nativeLayout == MatrixMemoryLayout::Column_Major) ?
+				ColumnMajorIndex(row, column) :
+				RowMajorIndex(row, column);
+		}
 		constexpr size_t ColumnMajorIndex(size_t row, size_t column) const noexcept { return column * row_count + row; }
 		constexpr size_t RowMajorIndex(size_t row, size_t column) const noexcept { return row * column_count + column; }
 	};

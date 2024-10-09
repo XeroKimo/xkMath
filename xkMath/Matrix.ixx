@@ -7,6 +7,7 @@ module;
 #include <cstdint>
 #include <cmath>
 #include <functional>
+#include <cassert>
 
 #pragma warning(disable:4244)
 export module xk.Math.Matrix;
@@ -117,7 +118,6 @@ namespace xk::Math
 		static constexpr size_t column_count = N;
 		static constexpr size_t element_count = row_count * column_count;
 		static constexpr bool is_square_matrix = row_count == column_count;
-		static constexpr bool is_vector = N == 1;
 		using value = Ty;
 		using reference = Ty&;
 		using const_reference = const Ty&;
@@ -134,20 +134,8 @@ namespace xk::Math
 			std::copy(other._values.begin(), other._values.end(), _values.begin());
 		}
 
-		template<std::convertible_to<Ty> OtherTy, size_t M2, std::convertible_to<Ty>... OtherTy2>
-			requires (sizeof...(OtherTy2) + M2 <= M) && (is_vector)
-		constexpr Matrix(Matrix<OtherTy, M2, N> v, OtherTy2... values)
-		{
-			std::copy(v._values.begin(), v._values.end(), _values.begin());
-			if constexpr(sizeof...(OtherTy2) > 0)
-			{
-				std::array<value, sizeof...(OtherTy2)> vs{ values... };
-				std::copy(vs.begin(), vs.end(), _values.begin() + M2);
-			}
-		}
-
 		template<std::convertible_to<Ty>... Ty2>
-			requires (sizeof...(Ty2) <= M * N) //Some stupid reason consumers of the library can't see element_count when trying to instantiate this constructor
+			requires (sizeof...(Ty2) <= element_count)
 		constexpr Matrix(Ty2... values) :
 			_values({ static_cast<Ty>(values)... })
 		{
@@ -294,31 +282,11 @@ namespace xk::Math
 
 		constexpr size_t GetIndex(size_t row, size_t column) const noexcept 
 		{ 
+			assert(row < row_count);
+			assert(column < column_count);
 			return (memoryLayout == MatrixMemoryLayout::Column_Major) ?
 				ColumnMajorIndex(row, column) :
 				RowMajorIndex(row, column);
-		}
-
-		constexpr reference operator[](size_t index) requires (N == 1) { return _values[index]; }
-		constexpr const_reference operator[](size_t index) const requires (N == 1) { return _values[index]; }
-
-		constexpr reference X() requires (element_count >= 1) && (is_vector) { return _values[0]; }
-		constexpr const_reference X() const requires (element_count >= 1) && (is_vector) { return _values[0]; }
-
-		constexpr reference Y() requires (element_count >= 2) && (is_vector) { return _values[1]; }
-		constexpr const_reference Y() const requires (element_count >= 2) && (is_vector) { return _values[1]; }
-
-		constexpr reference Z() requires (element_count >= 3) && (is_vector) { return _values[2]; }
-		constexpr const_reference Z() const requires (element_count >= 3) && (is_vector) { return _values[2]; }
-
-		constexpr reference W() requires (element_count >= 4) && (is_vector) { return _values[3]; }
-		constexpr const_reference W() const requires (element_count >= 4) && (is_vector) { return _values[3]; }
-
-		template<size_t... Index>
-			requires ((Index < element_count) && ...) && (sizeof...(Index) < element_count) && (is_vector)
-		constexpr Matrix<Ty, sizeof...(Index), 1> Swizzle()
-		{
-			return { _values[Index]... };
 		}
 
 	private:
@@ -333,126 +301,189 @@ namespace xk::Math
 	};
 
 	export template<class Ty, size_t ElementCount>
-	using Vector = Matrix<Ty, ElementCount, 1>;
-
-	export template<class Ty, size_t ElementCount>
 	using SquareMatrix = Matrix<Ty, ElementCount, ElementCount>;
 
-	//export template<class Ty, size_t ElementCount>
-	//struct Vector : public Matrix<Ty, ElementCount, 1>
-	//{
-	//	using base_type = Matrix<Ty, ElementCount, 1>;
-	//	using base_type::_values;
-	//	using base_type::Matrix;
-	//	using base_type::element_count;
+	export template<class Ty, size_t ElementCount>
+	struct Vector;
 
-	//	constexpr Vector(const base_type& value) : base_type(value)
-	//	{
+	export template<class Ty, size_t ElementCount>
+	constexpr Matrix<Ty, ElementCount, 1> ToColumnMatrix(Vector<Ty, ElementCount> vector)
+	{
+		return [vector]<size_t... Is>(std::index_sequence<Is...>)
+		{
+			return Matrix<Ty, ElementCount, 1>{ vector[Is]... };
+		}(std::make_index_sequence<ElementCount>{});
+	}
 
-	//	}
+	export template<class Ty, size_t ElementCount>
+	constexpr Matrix<Ty, 1, ElementCount> ToRowMatrix(Vector<Ty, ElementCount> vector)
+	{
+		return[vector]<size_t... Is>(std::index_sequence<Is...>)
+		{
+			return Matrix<Ty, 1, ElementCount>{ vector[Is]... };
+		}(std::make_index_sequence<ElementCount>{});
+	}
 
-	//	constexpr base_type::reference operator[](size_t index) { return _values[index]; }
-	//	constexpr base_type::const_reference operator[](size_t index) const { return _values[index]; }
+	export template<class Ty, size_t ElementCount>
+	struct Vector
+	{
+		static constexpr size_t element_count = ElementCount;
+		using value = Ty;
+		using reference = Ty&;
+		using const_reference = const Ty&;
 
-	//	constexpr base_type::reference X() requires (element_count >= 1) { return _values[0]; }
-	//	constexpr base_type::const_reference X() const requires (element_count >= 1) { return _values[0]; }
+		std::array<Ty, ElementCount> _values{};
 
-	//	constexpr base_type::reference Y() requires (element_count >= 2) { return _values[1]; }
-	//	constexpr base_type::const_reference Y() const requires (element_count >= 2) { return _values[1]; }
+	public:
+		constexpr Vector() = default;
 
-	//	constexpr base_type::reference Z() requires (element_count >= 3) { return _values[2]; }
-	//	constexpr base_type::const_reference Z() const requires (element_count >= 3) { return _values[2]; }
+		constexpr Vector(Matrix<Ty, ElementCount, 1> values)
+		{
+			std::copy(values._values.begin(), values._values.end(), _values.begin());
+		}
 
-	//	constexpr base_type::reference W() requires (element_count >= 4) { return _values[3]; }
-	//	constexpr base_type::const_reference W() const requires (element_count >= 4) { return _values[3]; }
+		constexpr Vector(Matrix<Ty, 1, ElementCount> values)
+		{
+			std::copy(values._values.begin(), values._values.end(), _values.begin());
+		}
 
-	//	constexpr auto begin() { return _values.begin(); }
-	//	constexpr auto end() { return _values.end(); }
+		template<std::convertible_to<Ty>... OtherTy2>
+			requires (sizeof...(OtherTy2) <= element_count)
+		constexpr Vector(OtherTy2... values) :
+			_values{ static_cast<Ty>(values)... }
+		{
 
-	//	constexpr auto begin() const { return _values.begin(); }
-	//	constexpr auto end() const { return _values.end(); }
+		}
 
-	//	template<class Ty2, size_t ElementCount2>
-	//	constexpr Vector& operator+=(const Matrix<Ty2, ElementCount2, 1>& rh)
-	//	{
-	//		static_cast<base_type&>(*this) += rh;
-	//		return *this;
-	//	}
+		template<std::convertible_to<Ty> OtherTy, size_t OtherElementCount, std::convertible_to<Ty>... OtherTy2>
+			requires (sizeof...(OtherTy2) + OtherElementCount <= element_count)
+		constexpr Vector(Vector<OtherTy, OtherElementCount> v, OtherTy2... values)
+		{
+			std::copy(v._values.begin(), v._values.end(), _values.begin());
+			if constexpr(sizeof...(OtherTy2) > 0)
+			{
+				std::array<value, sizeof...(OtherTy2)> vs{ values... };
+				std::copy(vs.begin(), vs.end(), _values.begin() + OtherElementCount);
+			}
+		}
 
-	//	template<class Ty2, size_t ElementCount2>
-	//	friend constexpr Vector operator+(Vector lh, const Matrix<Ty2, ElementCount2, 1>& rh)
-	//	{
-	//		return lh += rh;
-	//	}
+		template<class Ty2>
+		constexpr Vector& operator+=(const Vector<Ty2, element_count>& rh)
+		{
+			std::transform(_values.begin(), _values.end(), rh._values.begin(), _values.begin(), std::plus{});
+			return *this;
+		}
 
-	//	template<class Ty2, size_t ElementCount>
-	//	constexpr Vector& operator-=(const Matrix<Ty2, ElementCount, 1>& rh)
-	//	{
-	//		static_cast<base_type&>(*this) -= rh;
-	//		return *this;
-	//	}
+		template<class Ty2>
+		constexpr Vector& operator-=(const Vector<Ty2, element_count>& rh)
+		{
+			std::transform(_values.begin(), _values.end(), rh._values.begin(), _values.begin(), std::minus{});
+			return *this;
+		}
 
-	//	template<class Ty2, size_t ElementCount2>
-	//	friend constexpr Vector operator-(Vector lh, const Matrix<Ty2, ElementCount2, 1>& rh)
-	//	{
-	//		return lh -= rh;
-	//	}
+		constexpr Vector operator-() const
+		{
+			Vector temp = *this;
+			temp *= -1;
+			return temp;
+		}
 
-	//	constexpr Vector operator-() const
-	//	{
-	//		return base_type::operator-();
-	//	}
+		template<class Ty2>
+		friend constexpr Vector operator+(Vector<Ty2, element_count> lh, const Vector<Ty2, element_count>& rh)
+		{
+			return lh += rh;
+		}
 
-	//	template<class Ty2>
-	//		requires std::is_arithmetic_v<Ty2>
-	//	constexpr Vector& operator*=(Ty2 scalar)
-	//	{
-	//		static_cast<base_type&>(*this) *= scalar;
-	//		return *this;
-	//	}
+		template<class Ty2>
+		friend constexpr Vector operator-(Vector<Ty2, element_count> lh, const Vector<Ty2, element_count>& rh)
+		{
+			return lh -= rh;
+		}
 
-	//	template<class Ty2>
-	//		requires std::is_arithmetic_v<Ty2>
-	//	friend constexpr Vector operator*(Vector lh, Ty2 scalar)
-	//	{
-	//		return lh *= scalar;
-	//	}
+		template<class Ty2>
+			requires std::is_arithmetic_v<Ty2>
+		constexpr Vector& operator*=(Ty2 scalar)
+		{
+			std::transform(_values.begin(), _values.end(), _values.begin(), [scalar](value value) { return value *= scalar; });
+			return *this;
+		}
 
-	//	template<class Ty2>
-	//		requires std::is_arithmetic_v<Ty2>
-	//	friend constexpr Vector operator*(Ty2 scalar, Vector lh)
-	//	{
-	//		return lh *= scalar;
-	//	}
+		template<class Ty2>
+			requires std::is_arithmetic_v<Ty2>
+		constexpr Vector& operator/=(Ty2 scalar)
+		{
+			std::transform(_values.begin(), _values.end(), _values.begin(), [scalar](value value) { return value /= scalar; });
+			return *this;
+		}
 
-	//	template<class Ty2>
-	//		requires std::is_arithmetic_v<Ty2>
-	//	constexpr Vector& operator/=(Ty2 scalar)
-	//	{
-	//		static_cast<base_type&>(*this) /= scalar;
-	//		return *this;
-	//	}
+		template<class Ty2>
+			requires std::is_arithmetic_v<Ty2>
+		friend constexpr Vector operator*(Vector lh, Ty2 scalar)
+		{
+			return lh *= scalar;
+		}
 
-	//	template<class Ty2>
-	//		requires std::is_arithmetic_v<Ty2>
-	//	friend constexpr Vector operator/(Vector lh, Ty scalar)
-	//	{
-	//		return lh /= scalar;
-	//	}
+		template<class Ty2>
+			requires std::is_arithmetic_v<Ty2>
+		friend constexpr Vector operator*(Ty2 scalar, Vector lh)
+		{
+			return lh *= scalar;
+		}
 
-	//	template<size_t... Index>
-	//		requires ((Index < ElementCount) && ...) && (sizeof...(Index) < ElementCount)
-	//	Vector<Ty, sizeof...(Index)> Swizzle()
-	//	{
-	//		return { operator[](Index)... };
-	//	}
+		template<class Ty2, size_t N>
+			requires std::is_arithmetic_v<Ty2>
+		friend constexpr Matrix<std::common_type_t<Ty, Ty2>, 1, N> operator*(Vector lh, Matrix<Ty2, element_count, N> rh)
+		{
+			return ToRowMatrix(lh) * rh;
+		}
 
-	//private:
-	//	using base_type::At;
-	//};
+		template<class Ty2, size_t M>
+			requires std::is_arithmetic_v<Ty2>
+		friend constexpr Matrix<std::common_type_t<Ty, Ty2>, M, 1> operator*(Matrix<Ty2, M, element_count> lh, Vector rh)
+		{
+			return lh * ToColumnMatrix(rh);
+		}
 
-	//template<class... Ty>
-	//Vector(Ty...) -> Vector<std::tuple_element_t<0, std::tuple<Ty...>>, sizeof...(Ty)>;
+		template<class Ty2>
+			requires std::is_arithmetic_v<Ty2>
+		friend constexpr Vector operator/(Vector lh, Ty2 scalar)
+		{
+			return lh /= scalar;
+		}
+
+		template<class Ty2>
+		friend constexpr bool operator==(const Vector& lh, const Vector<Ty2, element_count>& rh)
+		{
+			return std::equal(lh._values.begin(), lh._values.end(), rh._values.begin());
+		}
+
+		operator Ty() const requires (element_count == 1) { return _values[0]; }
+
+		constexpr reference operator[](size_t index) { return _values[index]; }
+		constexpr const_reference operator[](size_t index) const { return _values[index]; }
+
+		constexpr reference X() requires (element_count >= 1){ return _values[0]; }
+		constexpr const_reference X() const requires (element_count >= 1) { return _values[0]; }
+
+		constexpr reference Y() requires (element_count >= 2) { return _values[1]; }
+		constexpr const_reference Y() const requires (element_count >= 2) { return _values[1]; }
+
+		constexpr reference Z() requires (element_count >= 3) { return _values[2]; }
+		constexpr const_reference Z() const requires (element_count >= 3) { return _values[2]; }
+
+		constexpr reference W() requires (element_count >= 4)  { return _values[3]; }
+		constexpr const_reference W() const requires (element_count >= 4) { return _values[3]; }
+
+		template<size_t... Index>
+			requires ((Index < element_count) && ...) && (sizeof...(Index) < element_count)
+		constexpr Vector<Ty, sizeof...(Index)> Swizzle()
+		{
+			return { _values[Index]... };
+		}
+	};
+
+	template<class... Ty>
+	Vector(Ty...) -> Vector<std::tuple_element_t<0, std::tuple<Ty...>>, sizeof...(Ty)>;
 
 	template<class Ty1, class Ty2, size_t M, size_t N, size_t M2, bool IsConst1, bool IsConst2>
 	constexpr auto operator*(RowRef<Ty1, M, N, IsConst1> lh, ColumnRef<Ty2, N, M2, IsConst2> rh)
@@ -574,15 +605,7 @@ namespace xk::Math
 
 	export Matrix<float, 4, 4> OrthographicProjectionAspectRatioLH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
 	{
-		float x = aspectRatio.X() * viewSize / aspectRatio.Y();
-		float y = viewSize;
-		return
-		{
-			2 / x, 0,      0,                              0,
-			0,      2 / y, 0,                              0,
-			0,      0,     1 / (zFar - zNear),          -zNear / (zFar - zNear),
-			0,      0,      0 , 1
-		};
+		return OrthographicProjectionLH({ aspectRatio.X() / aspectRatio.Y() * viewSize, viewSize }, zNear, zFar);
 	}
 
 	export Matrix<float, 4, 4> OrthographicProjectionRH(Vector<float, 2> resolution, float zNear, float zFar)
@@ -598,15 +621,7 @@ namespace xk::Math
 
 	export Matrix<float, 4, 4> OrthographicProjectionAspectRatioRH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
 	{
-		float x = aspectRatio.X() * viewSize / aspectRatio.Y();
-		float y = viewSize;
-		return
-		{
-			2 / x, 0,      0,                              0,
-			0,      2 / y, 0,                              0,
-			0,      0,     1 / (zNear - zFar),          zNear / (zNear - zFar),
-			0,      0,      0 , 1
-		};
+		return OrthographicProjectionRH({ aspectRatio.X() / aspectRatio.Y() * viewSize, viewSize }, zNear, zFar);
 	}
 
 	export namespace Aliases

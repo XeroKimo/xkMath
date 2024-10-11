@@ -15,10 +15,10 @@ export module xk.Math.Matrix;
 namespace xk::Math
 {
 	export template<class Ty, size_t M, size_t N>
-	struct Matrix;
+		struct Matrix;
 
 	export template<class Ty, size_t M, size_t N>
-	constexpr Matrix<Ty, N, M> Transpose(const Matrix<Ty, M, N>& mat) noexcept;
+		constexpr Matrix<Ty, N, M> Transpose(const Matrix<Ty, M, N>& mat) noexcept;
 
 	template<class Ty, bool IsConst>
 	struct BackingMatrixRef
@@ -43,7 +43,7 @@ namespace xk::Math
 	};
 
 	export template<class Ty, size_t M, size_t N, bool IsConst>
-	class ColumnRef : private BackingMatrixRef<Matrix<Ty, M,  N>, IsConst>
+		class ColumnRef : private BackingMatrixRef<Matrix<Ty, M, N>, IsConst>
 	{
 		using base_type = BackingMatrixRef<Matrix<Ty, M, N>, IsConst>;
 		using matrix = base_type::matrix;
@@ -67,7 +67,7 @@ namespace xk::Math
 	};
 
 	export template<class Ty, size_t M, size_t N, bool IsConst>
-	class RowRef : private BackingMatrixRef<Matrix<Ty, M, N>, IsConst>
+		class RowRef : private BackingMatrixRef<Matrix<Ty, M, N>, IsConst>
 	{
 		using base_type = BackingMatrixRef<Matrix<Ty, M, N>, IsConst>;
 		using matrix = base_type::matrix;
@@ -118,15 +118,15 @@ namespace xk::Math
 		static constexpr size_t column_count = N;
 		static constexpr size_t element_count = row_count * column_count;
 		static constexpr bool is_square_matrix = row_count == column_count;
-		using value = Ty;
+		using value_type = Ty;
 		using reference = Ty&;
 		using const_reference = const Ty&;
 
-		std::array<value, element_count> _values{};
+		std::array<value_type, element_count> _values{};
 		static constexpr MatrixMemoryLayout nativeLayout = MatrixMemoryLayout::Row_Major;
 		static constexpr MatrixMemoryLayout memoryLayout = MatrixMemoryLayout::Column_Major;
 	public:
-		constexpr Matrix() = default;	
+		constexpr Matrix() = default;
 
 		template<std::convertible_to<Ty> Ty2>
 		constexpr Matrix(const Matrix<Ty2, M, N>& other)
@@ -155,7 +155,7 @@ namespace xk::Math
 		static constexpr Matrix Identity() requires (is_square_matrix)
 		{
 			Matrix mat;
-			for (size_t i = 0; i < column_count; i++)
+			for(size_t i = 0; i < column_count; i++)
 			{
 				mat.At(i, i) = 1;
 			}
@@ -170,7 +170,7 @@ namespace xk::Math
 		template<class Ty2>
 		constexpr Matrix& operator+=(const Matrix<Ty2, row_count, column_count>& rh)
 		{
-			for (size_t i = 0; i < element_count; i++)
+			for(size_t i = 0; i < element_count; i++)
 			{
 				_values[i] += rh._values[i];
 			}
@@ -181,7 +181,7 @@ namespace xk::Math
 		template<class Ty2>
 		constexpr Matrix& operator-=(const Matrix<Ty2, row_count, column_count>& rh)
 		{
-			for (size_t i = 0; i < element_count; i++)
+			for(size_t i = 0; i < element_count; i++)
 			{
 				_values[i] -= rh._values[i];
 			}
@@ -197,12 +197,12 @@ namespace xk::Math
 		}
 
 		template<class Ty2, size_t M2>
-		friend constexpr Matrix<decltype(std::declval<Ty>() * std::declval<Ty2>()), M, M2> operator*(const Matrix<Ty, M, N>& lh, const Matrix<Ty2, N, M2>& rh)
+		friend constexpr Matrix<decltype(std::declval<Ty>()* std::declval<Ty2>()), M, M2> operator*(const Matrix<Ty, M, N>& lh, const Matrix<Ty2, N, M2>& rh)
 		{
 			Matrix<decltype(std::declval<Ty>()* std::declval<Ty2>()), M, M2> result;
-			for (size_t row = 0; row < result.row_count; row++)
+			for(size_t row = 0; row < result.row_count; row++)
 			{
-				for (size_t column = 0; column < result.column_count; column++)
+				for(size_t column = 0; column < result.column_count; column++)
 				{
 					result.At(row, column) = RowRef(lh, row) * ColumnRef(rh, column);
 				}
@@ -233,7 +233,7 @@ namespace xk::Math
 			requires std::is_arithmetic_v<Ty2>
 		constexpr Matrix& operator*=(Ty2 scalar)
 		{
-			for (reference value : _values)
+			for(reference value : _values)
 			{
 				value *= scalar;
 			}
@@ -244,7 +244,7 @@ namespace xk::Math
 			requires std::is_arithmetic_v<Ty2>
 		constexpr Matrix& operator/=(Ty2 scalar)
 		{
-			for (reference value : _values)
+			for(reference value : _values)
 			{
 				value /= scalar;
 			}
@@ -280,8 +280,8 @@ namespace xk::Math
 
 		operator Ty() const requires (element_count == 1) { return _values[0]; }
 
-		constexpr size_t GetIndex(size_t row, size_t column) const noexcept 
-		{ 
+		constexpr size_t GetIndex(size_t row, size_t column) const noexcept
+		{
 			assert(row < row_count);
 			assert(column < column_count);
 			return (memoryLayout == MatrixMemoryLayout::Column_Major) ?
@@ -301,22 +301,22 @@ namespace xk::Math
 	};
 
 	export template<class Ty, size_t ElementCount>
-	using SquareMatrix = Matrix<Ty, ElementCount, ElementCount>;
+		using SquareMatrix = Matrix<Ty, ElementCount, ElementCount>;
 
 	export template<class Ty, size_t ElementCount>
-	struct Vector;
+		struct Vector;
 
 	export template<class Ty, size_t ElementCount>
-	constexpr Matrix<Ty, ElementCount, 1> ToColumnMatrix(Vector<Ty, ElementCount> vector)
+		constexpr Matrix<Ty, ElementCount, 1> ToColumnMatrix(Vector<Ty, ElementCount> vector)
 	{
-		return [vector]<size_t... Is>(std::index_sequence<Is...>)
+		return[vector]<size_t... Is>(std::index_sequence<Is...>)
 		{
 			return Matrix<Ty, ElementCount, 1>{ vector[Is]... };
 		}(std::make_index_sequence<ElementCount>{});
 	}
 
 	export template<class Ty, size_t ElementCount>
-	constexpr Matrix<Ty, 1, ElementCount> ToRowMatrix(Vector<Ty, ElementCount> vector)
+		constexpr Matrix<Ty, 1, ElementCount> ToRowMatrix(Vector<Ty, ElementCount> vector)
 	{
 		return[vector]<size_t... Is>(std::index_sequence<Is...>)
 		{
@@ -324,18 +324,30 @@ namespace xk::Math
 		}(std::make_index_sequence<ElementCount>{});
 	}
 
+	export template<class Ty>
+		struct Uniform
+	{
+		Ty value;
+	};
+
 	export template<class Ty, size_t ElementCount>
-	struct Vector
+		struct Vector
 	{
 		static constexpr size_t element_count = ElementCount;
-		using value = Ty;
+		using value_type = Ty;
 		using reference = Ty&;
 		using const_reference = const Ty&;
 
-		std::array<Ty, ElementCount> _values{};
+		std::array<value_type, ElementCount> _values{};
 
 	public:
 		constexpr Vector() = default;
+
+		template<std::convertible_to<Ty> Ty2>
+		constexpr Vector(Uniform<Ty2> value)
+		{
+			_values.fill(value.value);
+		}
 
 		constexpr Vector(Matrix<Ty, ElementCount, 1> values)
 		{
@@ -362,7 +374,7 @@ namespace xk::Math
 			std::copy(v._values.begin(), v._values.end(), _values.begin());
 			if constexpr(sizeof...(OtherTy2) > 0)
 			{
-				std::array<value, sizeof...(OtherTy2)> vs{ values... };
+				std::array<value_type, sizeof...(OtherTy2)> vs{ values... };
 				std::copy(vs.begin(), vs.end(), _values.begin() + OtherElementCount);
 			}
 		}
@@ -404,7 +416,7 @@ namespace xk::Math
 			requires std::is_arithmetic_v<Ty2>
 		constexpr Vector& operator*=(Ty2 scalar)
 		{
-			std::transform(_values.begin(), _values.end(), _values.begin(), [scalar](value value) { return value *= scalar; });
+			std::transform(_values.begin(), _values.end(), _values.begin(), [scalar](value_type value) { return value *= scalar; });
 			return *this;
 		}
 
@@ -412,7 +424,7 @@ namespace xk::Math
 			requires std::is_arithmetic_v<Ty2>
 		constexpr Vector& operator/=(Ty2 scalar)
 		{
-			std::transform(_values.begin(), _values.end(), _values.begin(), [scalar](value value) { return value /= scalar; });
+			std::transform(_values.begin(), _values.end(), _values.begin(), [scalar](value_type value) { return value /= scalar; });
 			return *this;
 		}
 
@@ -457,12 +469,25 @@ namespace xk::Math
 			return std::equal(lh._values.begin(), lh._values.end(), rh._values.begin());
 		}
 
+		template<std::convertible_to<Ty> Ty2>
+		Vector& operator=(Uniform<Ty2> value)
+		{
+			_values.fill(value.value);
+			return *this;
+		}
+
+		auto begin() { return _values.begin(); }
+		auto end() { return _values.end(); }
+
+		auto begin() const { return _values.begin(); }
+		auto end() const { return _values.end(); }
+
 		operator Ty() const requires (element_count == 1) { return _values[0]; }
 
 		constexpr reference operator[](size_t index) { return _values[index]; }
 		constexpr const_reference operator[](size_t index) const { return _values[index]; }
 
-		constexpr reference X() requires (element_count >= 1){ return _values[0]; }
+		constexpr reference X() requires (element_count >= 1) { return _values[0]; }
 		constexpr const_reference X() const requires (element_count >= 1) { return _values[0]; }
 
 		constexpr reference Y() requires (element_count >= 2) { return _values[1]; }
@@ -471,7 +496,7 @@ namespace xk::Math
 		constexpr reference Z() requires (element_count >= 3) { return _values[2]; }
 		constexpr const_reference Z() const requires (element_count >= 3) { return _values[2]; }
 
-		constexpr reference W() requires (element_count >= 4)  { return _values[3]; }
+		constexpr reference W() requires (element_count >= 4) { return _values[3]; }
 		constexpr const_reference W() const requires (element_count >= 4) { return _values[3]; }
 
 		template<size_t... Index>
@@ -490,7 +515,7 @@ namespace xk::Math
 	{
 		using value_type = decltype(std::declval<Ty1>()* std::declval<Ty2>());
 		value_type value = 0;
-		for (size_t i = 0; i < N; i++)
+		for(size_t i = 0; i < N; i++)
 		{
 			value += lh[i] * rh[i];
 		}
@@ -498,13 +523,13 @@ namespace xk::Math
 	}
 
 	export template<class Ty, size_t M, size_t N, bool IsConst>
-	constexpr ColumnRef<Ty, M, N, IsConst>::reference ColumnRef<Ty, M, N, IsConst>::operator[](size_t index) const
+		constexpr ColumnRef<Ty, M, N, IsConst>::reference ColumnRef<Ty, M, N, IsConst>::operator[](size_t index) const
 	{
 		return (m_matrix->At(index, m_selectedColumn));
 	}
 
 	export template<class Ty, size_t M, size_t N, bool IsConst>
-	constexpr RowRef<Ty, M, N, IsConst>::reference RowRef<Ty, M, N, IsConst>::operator[](size_t index) const
+		constexpr RowRef<Ty, M, N, IsConst>::reference RowRef<Ty, M, N, IsConst>::operator[](size_t index) const
 	{
 		return (m_matrix->At(m_selectedRow, index));
 	}
@@ -513,9 +538,9 @@ namespace xk::Math
 	constexpr Matrix<Ty, N, M> Transpose(const Matrix<Ty, M, N>& mat) noexcept
 	{
 		Matrix<Ty, N, M> result;
-		for (size_t row = 0; row < mat.row_count; row++)
+		for(size_t row = 0; row < mat.row_count; row++)
 		{
-			for (size_t column = 0; column < mat.column_count; column++)
+			for(size_t column = 0; column < mat.column_count; column++)
 			{
 				result.At(column, row) = mat.At(row, column);
 			}
@@ -524,28 +549,28 @@ namespace xk::Math
 	}
 
 	export template<class Ty, size_t ElementCount>
-	constexpr Ty Dot(const Vector<Ty, ElementCount>& lh, const Vector<Ty, ElementCount>& rh)
+		constexpr Ty Dot(const Vector<Ty, ElementCount>& lh, const Vector<Ty, ElementCount>& rh)
 	{
 		return std::transform_reduce(lh.begin(), lh.end(), rh.begin(), Ty{});
 	}
 
 	export template<class Ty, size_t ElementCount>
-	constexpr Ty MagnitudeSquared(const Vector<Ty, ElementCount>& v)
+		constexpr Ty MagnitudeSquared(const Vector<Ty, ElementCount>& v)
 	{
 		return std::accumulate(v.begin(), v.end(), static_cast<Ty>(0), [](Ty total, Ty val)
-			{
-				return total + val * val;
-			});
+		{
+			return total + val * val;
+		});
 	}
-	
+
 	export template<class Ty, size_t ElementCount>
-	constexpr Ty Magnitude(const Vector<Ty, ElementCount>& v)
+		constexpr Ty Magnitude(const Vector<Ty, ElementCount>& v)
 	{
 		return std::sqrt(MagnitudeSquared(v));
 	}
 
 	export template<class Ty, size_t ElementCount>
-	constexpr Vector<Ty, ElementCount> Normalize(Vector<Ty, ElementCount> v)
+		constexpr Vector<Ty, ElementCount> Normalize(Vector<Ty, ElementCount> v)
 	{
 		std::transform(v.begin(), v.end(), v.begin(), [dividor = Magnitude(v)](auto& e)
 		{
@@ -555,7 +580,7 @@ namespace xk::Math
 	}
 
 	export template<class Ty>
-	constexpr Matrix<Ty, 4, 4> TransformMatrix(const Vector<Ty, 3>& vector)
+		constexpr Matrix<Ty, 4, 4> TransformMatrix(const Vector<Ty, 3>& vector)
 	{
 		return
 		{
@@ -567,7 +592,7 @@ namespace xk::Math
 	}
 
 	export template<class Ty>
-	constexpr Matrix<Ty, 4, 4> ScaleMatrix(const Vector<Ty, 3>& vector)
+		constexpr Matrix<Ty, 4, 4> ScaleMatrix(const Vector<Ty, 3>& vector)
 	{
 		return
 		{
@@ -579,16 +604,23 @@ namespace xk::Math
 	}
 
 	export template<class Ty, class Ty2, std::size_t ElementCount>
-	Vector<Ty, ElementCount> HadamardProduct(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
+		Vector<Ty, ElementCount> HadamardProduct(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
 	{
 		std::transform(lh.begin(), lh.end(), rh.begin(), lh.begin(), std::multiplies{});
 		return lh;
 	}
 
 	export template<class Ty, class Ty2, std::size_t ElementCount>
-	Vector<Ty, ElementCount> HadamardDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
+		Vector<Ty, ElementCount> HadamardDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
 	{
 		std::transform(lh.begin(), lh.end(), rh.begin(), lh.begin(), std::divides{});
+		return lh;
+	}
+
+	export template<class Ty, class Ty2, std::size_t ElementCount>
+		Vector<Ty, ElementCount> HadamardSafeDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
+	{
+		std::transform(lh.begin(), lh.end(), rh.begin(), lh.begin(), [](auto lh, auto rh) { return rh == 0 ? lh : lh / rh; });
 		return lh;
 	}
 

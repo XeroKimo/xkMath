@@ -8,8 +8,9 @@ export import <compare>;
 namespace xk::Math
 {
 	export template<class Ty>
-	struct Degree
+		struct Degree
 	{
+		using value_type = Ty;
 		Ty _value{};
 
 		auto operator<=>(const Degree&) const noexcept = default;
@@ -44,8 +45,9 @@ namespace xk::Math
 	};
 
 	export template<class Ty>
-	struct Radian
+		struct Radian
 	{
+		using value_type = Ty;
 		Ty _value{};
 
 		Radian() = default;

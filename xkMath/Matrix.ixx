@@ -604,27 +604,27 @@ namespace xk::Math
 	}
 
 	export template<class Ty, class Ty2, std::size_t ElementCount>
-		Vector<Ty, ElementCount> HadamardProduct(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
+	constexpr Vector<Ty, ElementCount> HadamardProduct(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
 	{
 		std::transform(lh.begin(), lh.end(), rh.begin(), lh.begin(), std::multiplies{});
 		return lh;
 	}
 
 	export template<class Ty, class Ty2, std::size_t ElementCount>
-		Vector<Ty, ElementCount> HadamardDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
+	constexpr Vector<Ty, ElementCount> HadamardDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
 	{
 		std::transform(lh.begin(), lh.end(), rh.begin(), lh.begin(), std::divides{});
 		return lh;
 	}
 
 	export template<class Ty, class Ty2, std::size_t ElementCount>
-		Vector<Ty, ElementCount> HadamardSafeDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
+	constexpr Vector<Ty, ElementCount> HadamardSafeDivision(Vector<Ty, ElementCount> lh, const Vector<Ty2, ElementCount>& rh)
 	{
 		std::transform(lh.begin(), lh.end(), rh.begin(), lh.begin(), [](auto lh, auto rh) { return rh == 0 ? lh : lh / rh; });
 		return lh;
 	}
 
-	export Matrix<float, 4, 4> OrthographicProjectionLH(Vector<float, 2> resolution, float zNear, float zFar)
+	export constexpr Matrix<float, 4, 4> OrthographicProjectionLH(Vector<float, 2> resolution, float zNear, float zFar)
 	{
 		return
 		{
@@ -635,12 +635,12 @@ namespace xk::Math
 		};
 	}
 
-	export Matrix<float, 4, 4> OrthographicProjectionAspectRatioLH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
+	export constexpr Matrix<float, 4, 4> OrthographicProjectionAspectRatioLH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
 	{
 		return OrthographicProjectionLH({ aspectRatio.X() / aspectRatio.Y() * viewSize, viewSize }, zNear, zFar);
 	}
 
-	export Matrix<float, 4, 4> OrthographicProjectionRH(Vector<float, 2> resolution, float zNear, float zFar)
+	export constexpr Matrix<float, 4, 4> OrthographicProjectionRH(Vector<float, 2> resolution, float zNear, float zFar)
 	{
 		return
 		{
@@ -651,7 +651,7 @@ namespace xk::Math
 		};
 	}
 
-	export Matrix<float, 4, 4> OrthographicProjectionAspectRatioRH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
+	export constexpr Matrix<float, 4, 4> OrthographicProjectionAspectRatioRH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
 	{
 		return OrthographicProjectionRH({ aspectRatio.X() / aspectRatio.Y() * viewSize, viewSize }, zNear, zFar);
 	}

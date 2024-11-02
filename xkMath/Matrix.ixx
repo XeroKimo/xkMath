@@ -11,6 +11,7 @@ module;
 
 #pragma warning(disable:4244)
 export module xk.Math.Matrix;
+import xk.Math.Angles;
 
 namespace xk::Math
 {
@@ -654,6 +655,44 @@ namespace xk::Math
 	export constexpr Matrix<float, 4, 4> OrthographicProjectionAspectRatioRH(Vector<float, 2> aspectRatio, float viewSize, float zNear, float zFar)
 	{
 		return OrthographicProjectionRH({ aspectRatio.X() / aspectRatio.Y() * viewSize, viewSize }, zNear, zFar);
+	}
+
+	export Matrix<float, 4, 4> PerspectiveProjectionLH(Radian<float> fovY, float aspectRatio, float zNear, float zFar)
+	{
+		float yScale = 1 / tanf(fovY._value / 2);
+		float xScale = yScale / aspectRatio;
+
+		return
+		{
+			xScale, 0,      0,                              0,
+			0,      yScale, 0,                              0,
+			0,      0,      zFar / (zFar - zNear),          -zNear * zFar / (zFar - zNear),
+			0,      0,      1 , 0
+		};
+	}
+
+	export Matrix<float, 4, 4> PerspectiveProjectionRH(Radian<float> fovY, float aspectRatio, float zNear, float zFar)
+	{
+		float yScale = 1 / tanf(fovY._value / 2);
+		float xScale = yScale / aspectRatio;
+
+		return
+		{
+			xScale, 0,      0,                              0,
+			0,      yScale, 0,                              0,
+			0,      0,      zFar / (zNear - zFar),          zNear * zFar / (zNear - zFar),
+			0,      0,      -1 , 0
+		};
+	}
+
+	export Matrix<float, 4, 4>  PerspectiveProjectionLH(Degree<float> fovY, float aspectRatio, float zNear, float zFar)
+	{
+		return PerspectiveProjectionLH(Radian{ fovY }, aspectRatio, zNear, zFar);
+	}
+
+	export Matrix<float, 4, 4>  PerspectiveProjectionRH(Degree<float> fovY, float aspectRatio, float zNear, float zFar)
+	{
+		return PerspectiveProjectionRH(Radian{ fovY }, aspectRatio, zNear, zFar);
 	}
 
 	export namespace Aliases

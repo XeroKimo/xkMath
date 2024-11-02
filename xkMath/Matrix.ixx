@@ -13,6 +13,8 @@ module;
 export module xk.Math.Matrix;
 import xk.Math.Angles;
 
+//Testing resyncing across submodules
+
 namespace xk::Math
 {
 	export template<class Ty, size_t M, size_t N>

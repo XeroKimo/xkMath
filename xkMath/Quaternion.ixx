@@ -189,26 +189,21 @@ namespace xk::Math
 
 		//Referenced equations https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
 		//Creates a Rotation Matrix from the quaternion, if you're looking to view the matrix form of the quaternion, use ToMatrix()
-
-		//Z has been flipped here so that we could have the following behaviour when we use a left handed projection
-		//Rotating X = +Z -> +Y -> -Z -> -Y
-		//Rotating Y = +X -> +Z -> -X -> -Z
-		//Rotating Z = +X -> +Y -> -X -> -Y
 		Matrix<value_type, 4, 4> ToRotationMatrix() const
 		{
 			Matrix<float, 4, 4> lh =
 			{
-				 W(), -Z(), -Y(),  X(),
-				 Z(),  W(),  X(),  Y(),
-				 Y(), -X(),  W(), -Z(),
-				-X(), -Y(),  Z(),  W()
+				 W(), -Z(),  Y(), -X(),
+				 Z(),  W(), -X(), -Y(),
+				-Y(),  X(),  W(), -Z(),
+				 X(),  Y(),  Z(), W()
 			};
 			Matrix<float, 4, 4> rh =
 			{
-				 W(), -Z(), -Y(), -X(),
-				 Z(),  W(),  X(), -Y(),
-				 Y(), -X(),  W(),  Z(),
-				 X(),  Y(), -Z(),  W()
+				 W(), -Z(),  Y(),  X(),
+				 Z(),  W(), -X(),  Y(),
+				-Y(),  X(),  W(),  Z(),
+				-X(), -Y(), -Z(),  W()
 			};
 
 			return lh * rh;

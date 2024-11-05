@@ -8,10 +8,17 @@ export import <compare>;
 namespace xk::Math
 {
 	export template<class Ty>
+	struct Radian;
+
+	export template<class Ty>
 		struct Degree
 	{
 		using value_type = Ty;
 		Ty _value{};
+
+		Degree() = default;
+		Degree(value_type value) : _value{ value } {}
+		explicit Degree(Radian<value_type> angle);
 
 		auto operator<=>(const Degree&) const noexcept = default;
 
@@ -51,6 +58,7 @@ namespace xk::Math
 		Ty _value{};
 
 		Radian() = default;
+		Radian(value_type value) : _value{ value } {}
 		explicit Radian(Degree<Ty> angle) :
 			_value{ angle._value * static_cast<Ty>(std::numbers::pi) / static_cast<Ty>(180.0) }
 		{
@@ -85,10 +93,11 @@ namespace xk::Math
 		{
 			return lh -= rh;
 		}
-
-		explicit operator Degree<Ty>() const
-		{
-			return { _value / static_cast<Ty>(std::numbers::pi) * static_cast<Ty>(180.0) };
-		}
 	};
+
+	template<class Ty>
+	Degree<Ty>::Degree(Radian<Ty> angle) :
+		_value{ angle._value / static_cast<Ty>(std::numbers::pi) * static_cast<Ty>(180.0) }
+	{
+	}
 }

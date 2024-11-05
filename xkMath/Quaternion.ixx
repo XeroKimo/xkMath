@@ -167,9 +167,9 @@ namespace xk::Math
 			value_type yValue = 2 * (W() * Y() - Z() * X());
 			return
 			{
-				{ -std::atan2(2 * (W() * X() + Y() * Z()), 1 - 2 * (X() * X() + Y() * Y()))                       },
-				{ (std::abs(yValue) >= 1) ? std::copysign(std::numbers::pi_v<T> / 2, yValue) : -std::asin(yValue)  },
-				{ -std::atan2(2 * (W() * Z() + Y() * X()),  1 - 2 * (Z() * Z() + Y() * Y()))                        },
+				Radian{ std::atan2(2 * (W() * X() + Y() * Z()), 1 - 2 * (X() * X() + Y() * Y()))                       },
+				Radian{ (std::abs(yValue) >= 1) ? std::copysign(std::numbers::pi_v<T> / 2, -yValue) : std::asin(yValue)  },
+				Radian{ std::atan2(2 * (W() * Z() + Y() * X()),  1 - 2 * (Z() * Z() + Y() * Y()))                        },
 			};
 		}
 

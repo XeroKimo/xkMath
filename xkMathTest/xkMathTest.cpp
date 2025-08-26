@@ -183,7 +183,7 @@ namespace INSANITYMATHTEST
                 13, 14, 15, 16
             };
             xkm::Matrix<float, 4, 4> two = one;
-
+			PrintMatrix(one);
 
             Assert::AreEqual(one == two, true);
             Assert::AreEqual(one != two, false);
@@ -620,6 +620,38 @@ namespace INSANITYMATHTEST
                     Assert::AreEqual(one(y, x), three(y, x));
             }
         }
+
+		TEST_METHOD(MatrixInverse)
+		{
+			auto inverse = xk::Math::Inverse(
+				xkm::Matrix<float, 4, 4>{ 1, 1, 1, -1,
+				1, 1, -1, 1,
+				1, -1, 1, 1,
+				-1, 1, 1, 1 });
+
+			PrintMatrix(inverse);
+
+			xkm::Matrix<float, 4, 4> two {
+				0.25f, 0.25f, 0.25f, -0.25f,
+					0.25f, 0.25f, -0.25f, 0.25f,
+					0.25f, -0.25f, 0.25f, 0.25f,
+					-0.25f, 0.25f, 0.25f, 0.25f
+			};
+
+			for (size_t y = 0; y < Matrix4x4f::row_count; y++)
+			{
+				for (size_t x = 0; x < Matrix4x4f::column_count; x++)
+					Assert::AreEqual(inverse.At(y, x), two.At(y, x));
+			}
+
+			auto inverse2 = xk::Math::Inverse(
+				xkm::Matrix<float, 4, 4>{ 1, 2, 1, -1,
+				1, 1, -1, 1,
+				1, -1, 1, 1,
+				-1, 1, 1, 1 });
+
+			PrintMatrix(inverse2);
+		}
 
         TEST_METHOD(TrigTest)
         {

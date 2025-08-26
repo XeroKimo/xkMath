@@ -537,7 +537,7 @@ namespace xk::Math
 		return (m_matrix->At(m_selectedRow, index));
 	}
 
-	template<class Ty, size_t M, size_t N>
+	export template<class Ty, size_t M, size_t N>
 	constexpr Matrix<Ty, N, M> Transpose(const Matrix<Ty, M, N>& mat) noexcept
 	{
 		Matrix<Ty, N, M> result;
@@ -550,6 +550,140 @@ namespace xk::Math
 		}
 		return result;
 	}
+
+	//Reference: https://semath.info/src/inverse-cofactor-ex4.html
+	export template<class Ty>
+	constexpr Matrix<Ty, 4, 4> Inverse(const Matrix<Ty, 4, 4>& mat) noexcept
+	{
+		//This matrix is just here so that we can access matrix elements as 1s index to better match the
+		//reference equation
+		auto elm = [&](size_t row, size_t column) { return mat.At(row - 1, column - 1); };
+
+		auto m11 = elm(2, 2) * elm(3, 3) * elm(4, 4)
+			+ elm(2, 3) * elm(3, 4) * elm(4, 2)
+			+ elm(2, 4) * elm(3, 2) * elm(4, 3)
+			- elm(2, 4) * elm(3, 3) * elm(4, 2)
+			- elm(2, 3) * elm(3, 2) * elm(4, 4)
+			- elm(2, 2) * elm(3, 4) * elm(4, 3);
+		auto m21 = elm(1, 2) * elm(3, 3) * elm(4, 4)
+			+ elm(1, 3) * elm(3, 4) * elm(4, 2)
+			+ elm(1, 4) * elm(3, 2) * elm(4, 3)
+			- elm(1, 4) * elm(3, 3) * elm(4, 2)
+			- elm(1, 3) * elm(3, 2) * elm(4, 4)
+			- elm(1, 2) * elm(3, 4) * elm(4, 3);
+		auto m31 = elm(1, 2) * elm(2, 3) * elm(4, 4)
+			+ elm(1, 3) * elm(2, 4) * elm(4, 2)
+			+ elm(1, 4) * elm(2, 2) * elm(4, 3)
+			- elm(1, 4) * elm(2, 3) * elm(4, 2)
+			- elm(1, 3) * elm(2, 2) * elm(4, 4)
+			- elm(1, 2) * elm(2, 4) * elm(4, 3);
+		auto m41 = elm(1, 2) * elm(2, 3) * elm(3, 4)
+			+ elm(1, 3) * elm(2, 4) * elm(3, 2)
+			+ elm(1, 4) * elm(2, 2) * elm(3, 3)
+			- elm(1, 4) * elm(2, 3) * elm(3, 2)
+			- elm(1, 3) * elm(2, 2) * elm(3, 4)
+			- elm(1, 2) * elm(2, 4) * elm(3, 3);
+
+		auto adjugate = elm(1, 1) * m11 - elm(2, 1) * m21 + elm(3, 1) * m31 - elm(4, 1) * m41;
+
+
+		auto m12 = elm(2, 1) * elm(3, 3) * elm(4, 4)
+			+ elm(2, 3) * elm(3, 4) * elm(4, 1)
+			+ elm(2, 4) * elm(3, 1) * elm(4, 3)
+			- elm(2, 4) * elm(3, 3) * elm(4, 1)
+			- elm(2, 3) * elm(3, 1) * elm(4, 4)
+			- elm(2, 1) * elm(3, 4) * elm(4, 3);
+		auto m22 = elm(1, 1) * elm(3, 3) * elm(4, 4)
+			+ elm(1, 3) * elm(3, 4) * elm(4, 1)
+			+ elm(1, 4) * elm(3, 1) * elm(4, 3)
+			- elm(1, 4) * elm(3, 3) * elm(4, 1)
+			- elm(1, 3) * elm(3, 1) * elm(4, 4)
+			- elm(1, 1) * elm(3, 4) * elm(4, 3);
+		auto m32 = elm(1, 1) * elm(2, 3) * elm(4, 4)
+			+ elm(1, 3) * elm(2, 4) * elm(4, 1)
+			+ elm(1, 4) * elm(2, 1) * elm(4, 3)
+			- elm(1, 4) * elm(2, 3) * elm(4, 1)
+			- elm(1, 3) * elm(2, 1) * elm(4, 4)
+			- elm(1, 1) * elm(2, 4) * elm(4, 3);
+		auto m42 = elm(1, 1) * elm(2, 3) * elm(3, 4)
+			+ elm(1, 3) * elm(2, 4) * elm(3, 1)
+			+ elm(1, 4) * elm(2, 1) * elm(3, 3)
+			- elm(1, 4) * elm(2, 3) * elm(3, 1)
+			- elm(1, 3) * elm(2, 1) * elm(3, 4)
+			- elm(1, 1) * elm(2, 4) * elm(3, 3);
+
+
+		auto m13 = elm(2, 1) * elm(3, 2) * elm(4, 4)
+			+ elm(2, 2) * elm(3, 4) * elm(4, 1)
+			+ elm(2, 4) * elm(3, 1) * elm(4, 2)
+			- elm(2, 4) * elm(3, 2) * elm(4, 1)
+			- elm(2, 2) * elm(3, 1) * elm(4, 4)
+			- elm(2, 1) * elm(3, 4) * elm(4, 2);
+		auto m23 = elm(1, 1) * elm(3, 2) * elm(4, 4)
+			+ elm(1, 2) * elm(3, 4) * elm(4, 1)
+			+ elm(1, 4) * elm(3, 1) * elm(4, 2)
+			- elm(1, 4) * elm(3, 2) * elm(4, 1)
+			- elm(1, 2) * elm(3, 1) * elm(4, 4)
+			- elm(1, 1) * elm(3, 4) * elm(4, 2);
+		auto m33 = elm(1, 1) * elm(2, 2) * elm(4, 4)
+			+ elm(1, 2) * elm(2, 4) * elm(4, 1)
+			+ elm(1, 4) * elm(2, 1) * elm(4, 2)
+			- elm(1, 4) * elm(2, 2) * elm(4, 1)
+			- elm(1, 2) * elm(2, 1) * elm(4, 4)
+			- elm(1, 1) * elm(2, 4) * elm(4, 2);
+		auto m43 = elm(1, 1) * elm(2, 2) * elm(3, 4)
+			+ elm(1, 2) * elm(2, 4) * elm(3, 1)
+			+ elm(1, 4) * elm(2, 1) * elm(3, 2)
+			- elm(1, 4) * elm(2, 2) * elm(3, 1)
+			- elm(1, 2) * elm(2, 1) * elm(3, 4)
+			- elm(1, 1) * elm(2, 4) * elm(3, 2);
+
+
+		auto m14 = elm(2, 1) * elm(3, 2) * elm(4, 3)
+			+ elm(2, 2) * elm(3, 3) * elm(4, 1)
+			+ elm(2, 3) * elm(3, 1) * elm(4, 2)
+			- elm(2, 3) * elm(3, 2) * elm(4, 1)
+			- elm(2, 2) * elm(3, 1) * elm(4, 3)
+			- elm(2, 1) * elm(3, 3) * elm(4, 2);
+		auto m24 = elm(1, 1) * elm(3, 2) * elm(4, 3)
+			+ elm(1, 2) * elm(3, 3) * elm(4, 1)
+			+ elm(1, 3) * elm(3, 1) * elm(4, 2)
+			- elm(1, 3) * elm(3, 2) * elm(4, 1)
+			- elm(1, 2) * elm(3, 1) * elm(4, 3)
+			- elm(1, 1) * elm(3, 3) * elm(4, 2);
+		auto m34 = elm(1, 1) * elm(2, 2) * elm(4, 3)
+			+ elm(1, 2) * elm(2, 3) * elm(4, 1)
+			+ elm(1, 3) * elm(2, 1) * elm(4, 2)
+			- elm(1, 3) * elm(2, 2) * elm(4, 1)
+			- elm(1, 2) * elm(2, 1) * elm(4, 3)
+			- elm(1, 1) * elm(2, 3) * elm(4, 2);
+		auto m44 = elm(1, 1) * elm(2, 2) * elm(3, 3)
+			+ elm(1, 2) * elm(2, 3) * elm(3, 1)
+			+ elm(1, 3) * elm(2, 1) * elm(3, 2)
+			- elm(1, 3) * elm(2, 2) * elm(3, 1)
+			- elm(1, 2) * elm(2, 1) * elm(3, 3)
+			- elm(1, 1) * elm(2, 3) * elm(3, 2);
+
+		return 1 / adjugate * Matrix<Ty, 4, 4>
+		{
+			m11, -m21, m31, -m41,
+			-m12, m22, -m32, m42,
+			m13, -m23, m33, -m43,
+			-m14, m24, -m34, m44,
+		};
+	}
+
+	static_assert(Inverse<float>(
+		Matrix<float, 4, 4>{ 1, 1, 1, -1,
+		1, 1, -1, 1,
+		1, -1, 1, 1,
+		-1, 1, 1, 1 }) ==
+	Matrix<float, 4, 4>{
+		0.25f, 0.25f, 0.25f, -0.25f,
+			0.25f, 0.25f, -0.25f, 0.25f,
+			0.25f, -0.25f, 0.25f, 0.25f,
+			-0.25f, 0.25f, 0.25f, 0.25f
+	});
 
 	export template<class Ty, size_t ElementCount>
 		constexpr Ty Dot(const Vector<Ty, ElementCount>& lh, const Vector<Ty, ElementCount>& rh)

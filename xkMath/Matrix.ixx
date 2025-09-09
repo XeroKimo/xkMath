@@ -729,6 +729,20 @@ namespace xk::Math
 	}
 
 	export template<class Ty>
+	constexpr Matrix<Ty, 4, 4> RotationZMatrix(const Degree<Ty>& angle)
+	{
+		auto c = std::cos(Radian{ angle }._value);
+		auto s = std::sin(Radian{ angle }._value);
+		return
+		{
+			c, -s, 0, 0,
+			s, c, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		};
+	}
+
+	export template<class Ty>
 		constexpr Matrix<Ty, 4, 4> ScaleMatrix(const Vector<Ty, 3>& vector)
 	{
 		return

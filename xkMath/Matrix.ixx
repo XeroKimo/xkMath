@@ -9,11 +9,11 @@ module;
 #include <functional>
 #include <cassert>
 
+#include <boost/container_hash/hash.hpp>
+
 #pragma warning(disable:4244)
 export module xk.Math.Matrix;
 import xk.Math.Angles;
-
-//Testing resyncing across submodules
 
 namespace xk::Math
 {
@@ -673,17 +673,19 @@ namespace xk::Math
 		};
 	}
 
-	static_assert(Inverse<float>(
-		Matrix<float, 4, 4>{ 1, 1, 1, -1,
-		1, 1, -1, 1,
-		1, -1, 1, 1,
-		-1, 1, 1, 1 }) ==
-	Matrix<float, 4, 4>{
-		0.25f, 0.25f, 0.25f, -0.25f,
-			0.25f, 0.25f, -0.25f, 0.25f,
-			0.25f, -0.25f, 0.25f, 0.25f,
-			-0.25f, 0.25f, 0.25f, 0.25f
-	});
+	/// Some reason this is breaking intellisense, but if you'd ever like to test Inverse at compile time
+	/// Just uncomment below
+	//static_assert(Inverse<float>(
+	//	Matrix<float, 4, 4>{ 1, 1, 1, -1,
+	//	1, 1, -1, 1,
+	//	1, -1, 1, 1,
+	//	-1, 1, 1, 1 }) ==
+	//Matrix<float, 4, 4>{
+	//	0.25f, 0.25f, 0.25f, -0.25f,
+	//		0.25f, 0.25f, -0.25f, 0.25f,
+	//		0.25f, -0.25f, 0.25f, 0.25f,
+	//		-0.25f, 0.25f, 0.25f, 0.25f
+	//});
 
 	export template<class Ty, size_t ElementCount>
 		constexpr Ty Dot(const Vector<Ty, ElementCount>& lh, const Vector<Ty, ElementCount>& rh)
@@ -912,4 +914,36 @@ namespace xk::Math
 	}
 }
 
+namespace std
+{
+	template<class Ty, std::size_t Size>
+	class hash<xk::Math::Vector<Ty, Size>>
+	{
+	public:
+		std::size_t operator()(const xk::Math::Vector<Ty, Size>& value) const noexcept
+		{
+			std::size_t seed = 0;
+			for (std::size_t i = 0; i < Size; i++)
+				boost::hash_combine(seed, value[i]);
+
+			return seed;
+		}
+	};
+	
+	//Specialization only exists becuase currently the above actually results in a ICE
+	//using modules, more specializations may be added later
+	template<>
+	class hash<xk::Math::Vector<float, 4>>
+	{
+	public:
+		std::size_t operator()(const xk::Math::Vector<float, 4>& value) const noexcept
+		{
+			std::size_t seed = 0;
+			for (std::size_t i = 0; i < 4; i++)
+				boost::hash_combine(seed, value[i]);
+
+			return seed;
+		}
+	};
+}
 #pragma warning(default:4244)

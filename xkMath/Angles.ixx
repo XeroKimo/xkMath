@@ -1,9 +1,7 @@
 module;
 
-#include <numbers>
-
 export module xk.Math.Angles;
-export import <compare>;
+import std;
 
 namespace xk::Math
 {

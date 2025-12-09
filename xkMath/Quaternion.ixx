@@ -1,11 +1,7 @@
 module;
 
-#include <concepts>
-#include <cmath>
-#include <algorithm>
-#include <numbers>
-
 export module xk.Math.Quaternion;
+import std;
 import xk.Math.Matrix;
 import xk.Math.Angles;
 

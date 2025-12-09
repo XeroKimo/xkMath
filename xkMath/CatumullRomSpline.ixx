@@ -1,14 +1,7 @@
 module;
 
-#include <vector>
-#include <cmath>
-#include <concepts>
-#include <utility>
-#include <iostream>
-#include <span>
-#include <array>
-
 export module xk.Math.CatmullRomSpline;
+import std;
 import xk.Math.Matrix;
 
 namespace xk::Math

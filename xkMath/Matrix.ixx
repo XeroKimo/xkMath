@@ -1,18 +1,10 @@
 module;
 
-#include <array>
-#include <algorithm>
-#include <numeric>
-#include <concepts>
-#include <cstdint>
-#include <cmath>
-#include <functional>
-#include <cassert>
-
 #include <boost/container_hash/hash.hpp>
 
 #pragma warning(disable:4244)
 export module xk.Math.Matrix;
+import std;
 import xk.Math.Angles;
 
 namespace xk::Math

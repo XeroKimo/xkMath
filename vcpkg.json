@@ -3,5 +3,5 @@
   "version": "0.1.0",
   "homepage": "https://github.com/XeroKimo/xkMath",
   "dependencies": ["boost-container-hash"],
-  "builtin-baseline": "9558037875497b9db8cf38fcd7db68ec661bffe7"
+  "builtin-baseline": "7213cf8135c329c37c7e2778e40774489a0583a8"
 }
